@@ -95,7 +95,7 @@ Focus is on Figma embed and node visualization only.
    ```bash
    npm run dev
 
-App runs at http://localhost:3000
+App runs at http://localhost:5173
 
 # 🧩 Summary
 
