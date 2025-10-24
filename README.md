@@ -1,16 +1,85 @@
-# React + Vite
+# 🧭 Workflow Management System (POC)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+This Proof of Concept (POC) demonstrates a **visual workflow management system** built with **React**.  
+The goal is to create a **centralized hub** for teams (UI designers, backend developers, PMs, etc.) to visualize, manage, and collaborate on complex project flows in one place.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Each **workflow** represents a complete process (e.g., *Customer Purchase Flow*), while each **subnode** represents a supporting component — such as a Figma UI screen, an API endpoint, or a validation rule.
 
-## React Compiler
+This system allows embedding of **live Figma previews**, **node-to-node connections**, and **role-based edit restrictions** (conceptually, not enforced in this POC).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🎯 Objectives
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+This POC aims to:
+1. Demonstrate the **visual node-based workflow** using [React Flow](https://reactflow.dev/).
+2. Show that **Figma files can be embedded and previewed live** inside workflow nodes.
+3. Model a **hierarchical workflow structure**, where:
+   - Parent node = overall workflow (e.g., Customer Purchase Flow)
+   - Subnodes = UI, API, validation, or other process components
+4. Provide a base structure for future integrations like:
+   - Role-based editing permissions
+   - Notification system for status changes
+   - Persistent backend (database/API)
+   - Status-driven workflow approvals
+
+---
+
+## 🧩 Conceptual Model
+
+### Parent Node: Workflow
+
+Represents the overall process — e.g. a *Customer Purchase Flow*.
+
+```json
+{
+  "id": "workflow_001",
+  "type": "parent_node",
+  "title": "Customer Purchase Flow",
+  "status": "In Review",
+  "subnodes": ["node_ui_checkout", "node_api_payment", "node_data_validation"]
+}
+```
+
+### Subnodes: Components
+
+Each subnode represents part of the workflow, such as a Figma UI, API, or data validation rule.
+
+Example: UI Node (Figma)
+```json
+{
+  "id": "node_ui_checkout",
+  "type": "ui_figma",
+  "title": "Checkout Screen",
+  "role": "designer",
+  "figmaEmbed": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/file/<FILE_ID>",
+  "figmaLink": "https://www.figma.com/file/<FILE_ID>",
+  "status": "Approved"
+}
+
+// Example: API Node
+{
+  "id": "node_api_payment",
+  "type": "api",
+  "title": "Payment Endpoint",
+  "role": "backend",
+  "endpoint": "POST /api/payments",
+  "request": {
+    "amount": { "type": "number", "required": true, "min": 0 },
+    "method": { "type": "string", "enum": ["card", "ewallet"] }
+  },
+  "status": "In Progress"
+}
+```
+
+## 🧱 POC Implementation (Frontend Only)
+
+For this proof of concept:
+
+There is no backend connection or persistence.
+
+All data (nodes, edges, figma links) are stored in local React state.
+
+Focus is on Figma embed and node visualization only.
