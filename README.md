@@ -83,3 +83,16 @@ There is no backend connection or persistence.
 All data (nodes, edges, figma links) are stored in local React state.
 
 Focus is on Figma embed and node visualization only.
+
+# 🚀 Setup & Run
+1. Clone and Install
+   ```bash
+   git clone https://github.com/your-username/workflow-poc.git
+   cd workflow-poc
+   npm install
+
+2. Start the App
+   ```bash
+   npm run dev
+
+App runs at http://localhost:3000
