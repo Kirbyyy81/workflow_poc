@@ -83,3 +83,27 @@ There is no backend connection or persistence.
 All data (nodes, edges, figma links) are stored in local React state.
 
 Focus is on Figma embed and node visualization only.
+
+# 🚀 Setup & Run
+1. Clone and Install
+   ```bash
+   git clone https://github.com/your-username/workflow-poc.git
+   cd workflow-poc
+   npm install
+
+2. Start the App
+   ```bash
+   npm run dev
+
+App runs at http://localhost:5173
+
+# 🧩 Summary
+
+This POC lays the foundation for a centralized, visual workflow management platform where:
+
+- Each process step (UI, API, validation) is represented as a node.
+- Team members collaborate visually in real time.
+- Designers can preview Figma directly within the system.
+- Developers can reference APIs and validation logic all in one flow.
+
+Future iterations will extend this into a fully collaborative workflow tool integrating design, data, and development pipelines in a single interactive workspace.
