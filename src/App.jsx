@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/pages/MainPage.jsx
+import React from "react";
+import NodeCardFigma from "./components/NodeCardFigma";
+import NodeCard from "./components/NodeCard";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function MainPage() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-100 p-4">
+        <h2 className="font-bold text-xl mb-4">Workflows</h2>
+        <ul className="space-y-2 text-gray-700">
+          <li className="cursor-pointer hover:text-black">Customer Purchase Flow</li>
+          <li className="cursor-pointer hover:text-black">Order Fulfillment Flow</li>
+        </ul>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
 
-export default App
+      {/* Main Canvas */}
+      <div className="flex-1 bg-white p-6 overflow-auto grid grid-cols-3 gap-6">
+        <NodeCard
+          title="Purchase Request"
+          type="Workflow"
+          status="In Progress"
+          description="Initiate purchase flow"
+        />
+        <NodeCardFigma
+          title="UI Design"
+          figmaUrl="https://www.figma.com/file/abc123/example"
+          status="Completed"
+        />
+        <NodeCard
+          title="API Endpoint"
+          type="API"
+          status="Pending"
+          description="POST /purchase/submit"
+        />
+      </div>
+    </div>
+  );
+}
