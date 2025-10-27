@@ -1,6 +1,5 @@
-// src/components/NodeCard.jsx
-import React from "react";
-import { Card, CardHeader, CardContent, CardFooter } from "./ui/card";
+import React from 'react';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Bell, Edit, ExternalLink } from "lucide-react";
