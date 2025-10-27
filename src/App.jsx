@@ -1,6 +1,6 @@
 // src/pages/MainPage.jsx
 import React from "react";
-import NodeCardFigma from "./components/NodeCardFigma";
+import FigmaNode from "./components/FigmaNode";
 import NodeCard from "./components/NodeCard";
 
 export default function MainPage() {
@@ -23,7 +23,7 @@ export default function MainPage() {
           status="In Progress"
           description="Initiate purchase flow"
         />
-        <NodeCardFigma
+        <FigmaNode
           title="UI Design"
           figmaUrl="https://www.figma.com/file/abc123/example"
           status="Completed"

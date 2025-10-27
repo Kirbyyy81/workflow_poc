@@ -1,4 +1,4 @@
-// src/components/nodes/NodeCard.jsx
+// src/components/NodeCard.jsx
 import React from "react";
 import { Card, CardHeader, CardContent, CardFooter } from "./ui/card";
 import { Badge } from "./ui/badge";

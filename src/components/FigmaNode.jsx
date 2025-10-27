@@ -1,10 +1,8 @@
-// src/components/nodes/FigmaNode.jsx
-import React from "react";
-import NodeCard from "./NodeCard";
+import NodeCard from "./nodeCard";
+
 
 export default function NodeCardFigma({ title, figmaUrl, status }) {
   const openFigma = () => window.open(figmaUrl, "_blank");
-
   return (
     <NodeCard
       title={title}
