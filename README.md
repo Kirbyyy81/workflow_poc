@@ -1,109 +1,85 @@
 # 🧭 Workflow Management System (POC)
 
-## Overview
+A Proof of Concept for a visual workflow management system built with React. This tool helps teams visualize, manage, and collaborate on complex project flows in a centralized hub.
 
-This Proof of Concept (POC) demonstrates a **visual workflow management system** built with **React**.  
-The goal is to create a **centralized hub** for teams (UI designers, backend developers, PMs, etc.) to visualize, manage, and collaborate on complex project flows in one place.
+## 📜 Table of Contents
 
-Each **workflow** represents a complete process (e.g., *Customer Purchase Flow*), while each **subnode** represents a supporting component — such as a Figma UI screen, an API endpoint, or a validation rule.
+- [Features](#-features)
+- [Conceptual Model](#-conceptual-model)
+- [Tech Stack](#-tech-stack)
+- [Setup and Run](#-setup-and-run)
+- [Future Work](#-future-work)
 
-This system allows embedding of **live Figma previews**, **node-to-node connections**, and **role-based edit restrictions** (conceptually, not enforced in this POC).
+## ✨ Features
 
----
+*   **Visual Workflow Builder:** Create and connect nodes to represent project workflows using a drag-and-drop interface.
+*   **Embed Live Figma Previews:** Embed Figma designs directly into workflow nodes for seamless design-to-development collaboration.
+*   **Hierarchical Structure:** Organize complex workflows with parent nodes representing the overall process and subnodes for individual components (UI, API, etc.).
+*   **Node-to-Node Connections:** Visualize dependencies and relationships between different parts of your workflow.
 
-## 🎯 Objectives
+## 🧠 Conceptual Model
 
-This POC aims to:
-1. Demonstrate the **visual node-based workflow** using [React Flow](https://reactflow.dev/).
-2. Show that **Figma files can be embedded and previewed live** inside workflow nodes.
-3. Model a **hierarchical workflow structure**, where:
-   - Parent node = overall workflow (e.g., Customer Purchase Flow)
-   - Subnodes = UI, API, validation, or other process components
-4. Provide a base structure for future integrations like:
-   - Role-based editing permissions
-   - Notification system for status changes
-   - Persistent backend (database/API)
-   - Status-driven workflow approvals
+The system uses a hierarchical model:
 
----
+*   **Parent Node (Workflow):** Represents the entire process, like a "Customer Purchase Flow."
+    ```json
+    {
+      "id": "workflow_001",
+      "type": "parent_node",
+      "title": "Customer Purchase Flow",
+      "status": "In Review",
+      "subnodes": ["node_ui_checkout", "node_api_payment"]
+    }
+    ```
+*   **Subnodes (Components):** Represent individual parts of the workflow.
 
-## 🧩 Conceptual Model
+    *   **UI Node (Figma):**
+        ```json
+        {
+          "id": "node_ui_checkout",
+          "type": "ui_figma",
+          "title": "Checkout Screen",
+          "figmaEmbed": "https://www.figma.com/embed?embed_host=share&url=...",
+          "status": "Approved"
+        }
+        ```
+    *   **API Node:**
+        ```json
+        {
+          "id": "node_api_payment",
+          "type": "api",
+          "title": "Payment Endpoint",
+          "endpoint": "POST /api/payments",
+          "status": "In Progress"
+        }
+        ```
 
-### Parent Node: Workflow
+## 🛠️ Tech Stack
 
-Represents the overall process — e.g. a *Customer Purchase Flow*.
+*   **Frontend:** React, Vite
+*   **Workflow Visualization:** [React Flow](https://reactflow.dev/)
+*   **Styling:** Tailwind CSS
 
-```json
-{
-  "id": "workflow_001",
-  "type": "parent_node",
-  "title": "Customer Purchase Flow",
-  "status": "In Review",
-  "subnodes": ["node_ui_checkout", "node_api_payment", "node_data_validation"]
-}
-```
+## 🚀 Setup and Run
 
-### Subnodes: Components
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/workflow-poc.git
+    cd workflow-poc
+    ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Start the development server:**
+    ```bash
+    npm run dev
+    ```
+    The application will be running at `http://localhost:5173`.
 
-Each subnode represents part of the workflow, such as a Figma UI, API, or data validation rule.
+## 🔮 Future Work
 
-Example: UI Node (Figma)
-```json
-{
-  "id": "node_ui_checkout",
-  "type": "ui_figma",
-  "title": "Checkout Screen",
-  "role": "designer",
-  "figmaEmbed": "https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/file/<FILE_ID>",
-  "figmaLink": "https://www.figma.com/file/<FILE_ID>",
-  "status": "Approved"
-}
-
-// Example: API Node
-{
-  "id": "node_api_payment",
-  "type": "api",
-  "title": "Payment Endpoint",
-  "role": "backend",
-  "endpoint": "POST /api/payments",
-  "request": {
-    "amount": { "type": "number", "required": true, "min": 0 },
-    "method": { "type": "string", "enum": ["card", "ewallet"] }
-  },
-  "status": "In Progress"
-}
-```
-
-## 🧱 POC Implementation (Frontend Only)
-
-For this proof of concept:
-
-There is no backend connection or persistence.
-
-All data (nodes, edges, figma links) are stored in local React state.
-
-Focus is on Figma embed and node visualization only.
-
-# 🚀 Setup & Run
-1. Clone and Install
-   ```bash
-   git clone https://github.com/your-username/workflow-poc.git
-   cd workflow-poc
-   npm install
-
-2. Start the App
-   ```bash
-   npm run dev
-
-App runs at http://localhost:5173
-
-# 🧩 Summary
-
-This POC lays the foundation for a centralized, visual workflow management platform where:
-
-- Each process step (UI, API, validation) is represented as a node.
-- Team members collaborate visually in real time.
-- Designers can preview Figma directly within the system.
-- Developers can reference APIs and validation logic all in one flow.
-
-Future iterations will extend this into a fully collaborative workflow tool integrating design, data, and development pipelines in a single interactive workspace.
+*   **Backend Integration:** Connect to a database to persist workflows.
+*   **Role-Based Access Control:** Implement user roles and permissions.
+*   **Real-Time Collaboration:** Add features for multi-user editing.
+*   **Notifications:** Alert users to status changes and updates.
