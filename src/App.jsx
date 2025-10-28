@@ -1,6 +1,7 @@
 // src/pages/MainPage.jsx
 import React from "react";
-import Node from "@/components/Node";
+import Node from "@/components/nodes/FlowNode";
+import InitNode from "@/components/nodes/InitNode";
 import { useState, useCallback } from 'react';
 import {
   ReactFlow,
@@ -17,18 +18,19 @@ const initialNodes = [
     id: 'n1',
     data: { label: 'Node 1' },
     position: { x: 0, y: 0 },
-    type: 'node',
+    type: 'StartingNode',
   },
   {
     id: 'n2',
     data: { label: 'Node 2' },
     position: { x: 100, y: 100 },
+    type: 'node',
   },
 ];
  
 const initialEdges = [];
 
-const nodeTypes = { node: Node };
+const nodeTypes = { node: Node, StartingNode : InitNode };
  
 export default function MainPage() {
   const [nodes, setNodes] = useState(initialNodes);
