@@ -60,6 +60,29 @@ The system uses a hierarchical model:
 *   **Workflow Visualization:** [React Flow](https://reactflow.dev/)
 *   **Styling:** Tailwind CSS
 
+## 📂 File Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── nodes/
+│   │   ├── ui/
+│   │   └── ...
+│   ├── lib/
+│   ├── App.jsx
+│   └── main.jsx
+├── .gitignore
+├── index.html
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
 ## 🚀 Setup and Run
 
 1.  **Clone the repository:**
