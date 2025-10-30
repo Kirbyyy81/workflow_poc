@@ -1,6 +1,7 @@
 // src/App.jsx
 import React from "react";
-import FlowNode from "@/components/nodes/FlowNode";
+import WorkflowNode from "@/components/nodes/WorkflowNode";
+import DataInputNode from "@/components/nodes/DataInputNode";
 import CustomEdge from "@/components/nodes/CustomEdge";
 import { useState, useCallback } from 'react';
 import {
@@ -16,54 +17,76 @@ import '@xyflow/react/dist/style.css';
 
 const initialNodes = [
   {
-    id: 'n1',
+    id: 'workflow-1',
     data: { 
       label: 'Customer Purchase Flow',
-      type: 'Workflow',
       status: 'In Progress',
-      description: 'Main workflow for customer checkout process',
+      description: 'End-to-end workflow for customer checkout and payment processing',
     },
-    position: { x: 250, y: 50 },
-    type: 'node',
+    position: { x: 400, y: 50 },
+    type: 'workflowNode',
   },
   {
-    id: 'n2',
+    id: 'data-1',
     data: { 
       label: 'Checkout Screen',
       type: 'UI/Figma',
       status: 'Approved',
-      description: 'User interface for checkout',
+      description: 'User interface for checkout process',
+      figmaUrl: 'https://www.figma.com/file/...',
     },
-    position: { x: 100, y: 200 },
-    type: 'node',
+    position: { x: 150, y: 250 },
+    type: 'dataInputNode',
   },
   {
-    id: 'n3',
+    id: 'data-2',
     data: { 
-      label: 'Payment Endpoint',
+      label: 'Payment API',
       type: 'API',
       status: 'In Progress',
-      description: 'POST /api/payments',
+      description: 'Payment processing endpoint',
+      endpoint: 'POST /api/payments',
     },
-    position: { x: 400, y: 200 },
-    type: 'node',
+    position: { x: 450, y: 250 },
+    type: 'dataInputNode',
+  },
+  {
+    id: 'data-3',
+    data: { 
+      label: 'Order Database',
+      type: 'Data',
+      status: 'Approved',
+      description: 'Order data storage and retrieval',
+      endpoint: 'MongoDB - orders collection',
+    },
+    position: { x: 700, y: 250 },
+    type: 'dataInputNode',
   },
 ];
 
 const initialEdges = [
   {
-    id: 'e1-2',
-    source: 'n1',
-    target: 'n2',
+    id: 'e-workflow-1-data-1',
+    source: 'workflow-1',
+    target: 'data-1',
     type: 'custom',
     markerEnd: {
       type: MarkerType.ArrowClosed,
     },
   },
   {
-    id: 'e1-3',
-    source: 'n1',
-    target: 'n3',
+    id: 'e-workflow-1-data-2',
+    source: 'workflow-1',
+    target: 'data-2',
+    type: 'custom',
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+    },
+  },
+  {
+    id: 'e-workflow-1-data-3',
+    source: 'workflow-1',
+    target: 'data-3',
     type: 'custom',
     markerEnd: {
       type: MarkerType.ArrowClosed,
@@ -77,7 +100,8 @@ export default function App() {
   const [nodeIdCounter, setNodeIdCounter] = useState(4);
 
   const nodeTypes = { 
-    node: FlowNode,
+    workflowNode: WorkflowNode,
+    dataInputNode: DataInputNode,
   };
 
   const edgeTypes = {
@@ -113,135 +137,123 @@ export default function App() {
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
   }, []);
 
-  const addSubnode = useCallback((edgeId) => {
-    const edge = edges.find((e) => e.id === edgeId);
-    if (!edge) return;
+  const addChildNode = useCallback((parentId) => {
+    const parentNode = nodes.find((n) => n.id === parentId);
+    if (!parentNode) return;
 
-    const sourceNode = nodes.find((n) => n.id === edge.source);
-    const targetNode = nodes.find((n) => n.id === edge.target);
+    const newNodeId = `data-${nodeIdCounter}`;
+    const isWorkflowParent = parentNode.type === 'workflowNode';
     
-    if (!sourceNode || !targetNode) return;
-
-    const newNodeId = `n${nodeIdCounter}`;
+    // Calculate position below the parent
     const newNode = {
       id: newNodeId,
-      type: 'node',
+      type: 'dataInputNode',
       position: {
-        x: (sourceNode.position.x + targetNode.position.x) / 2,
-        y: (sourceNode.position.y + targetNode.position.y) / 2,
+        x: parentNode.position.x,
+        y: parentNode.position.y + 200,
       },
       data: {
-        label: `New Node ${nodeIdCounter}`,
-        type: 'Task',
+        label: `New Task ${nodeIdCounter}`,
+        type: 'Data',
         status: 'Pending',
         description: 'New task node',
         onDelete: deleteNode,
+        onAddChild: addChildNode,
+        onAddSibling: addSiblingNode,
       },
     };
 
     setNodeIdCounter(nodeIdCounter + 1);
     setNodes((nds) => [...nds, newNode]);
     
-    // Remove old edge and create two new edges
-    setEdges((eds) => {
-      const filtered = eds.filter((e) => e.id !== edgeId);
-      return [
-        ...filtered,
-        {
-          id: `e${edge.source}-${newNodeId}`,
-          source: edge.source,
-          target: newNodeId,
-          type: 'custom',
-          markerEnd: { type: MarkerType.ArrowClosed },
-        },
-        {
-          id: `e${newNodeId}-${edge.target}`,
-          source: newNodeId,
-          target: edge.target,
-          type: 'custom',
-          markerEnd: { type: MarkerType.ArrowClosed },
-        },
-      ];
-    });
-  }, [edges, nodes, nodeIdCounter, deleteNode]);
-
-  const addSibling = useCallback((edgeId) => {
-    const edge = edges.find((e) => e.id === edgeId);
-    if (!edge) return;
-
-    const targetNode = nodes.find((n) => n.id === edge.target);
-    if (!targetNode) return;
-
-    const newNodeId = `n${nodeIdCounter}`;
-    const newNode = {
-      id: newNodeId,
-      type: 'node',
-      position: {
-        x: targetNode.position.x + 200,
-        y: targetNode.position.y,
-      },
-      data: {
-        label: `Sibling Node ${nodeIdCounter}`,
-        type: 'Task',
-        status: 'Pending',
-        description: 'New sibling node',
-        onDelete: deleteNode,
-      },
-    };
-
-    setNodeIdCounter(nodeIdCounter + 1);
-    setNodes((nds) => [...nds, newNode]);
-    
-    // Connect the source to the new sibling
+    // Create edge from parent to new child
     setEdges((eds) => [
       ...eds,
       {
-        id: `e${edge.source}-${newNodeId}`,
-        source: edge.source,
+        id: `e-${parentId}-${newNodeId}`,
+        source: parentId,
         target: newNodeId,
         type: 'custom',
         markerEnd: { type: MarkerType.ArrowClosed },
       },
     ]);
-  }, [edges, nodes, nodeIdCounter, deleteNode]);
+  }, [nodes, nodeIdCounter, deleteNode]);
 
-  const removeEdge = useCallback((edgeId) => {
-    setEdges((eds) => eds.filter((e) => e.id !== edgeId));
-  }, []);
+  const addSiblingNode = useCallback((siblingId) => {
+    const siblingNode = nodes.find((n) => n.id === siblingId);
+    if (!siblingNode) return;
 
-  // Add edge data with callbacks
-  const edgesWithData = edges.map((edge) => ({
-    ...edge,
-    data: {
-      onAddSubnode: addSubnode,
-      onAddSibling: addSibling,
-      onRemove: removeEdge,
-    },
-  }));
+    // Find parent of the sibling
+    const parentEdge = edges.find((e) => e.target === siblingId);
+    if (!parentEdge) return;
 
-  // Add delete callback to all nodes
-  const nodesWithDelete = nodes.map((node) => ({
+    const newNodeId = siblingNode.type === 'workflowNode' ? `workflow-${nodeIdCounter}` : `data-${nodeIdCounter}`;
+    
+    // Calculate position to the right of sibling
+    const newNode = {
+      id: newNodeId,
+      type: siblingNode.type,
+      position: {
+        x: siblingNode.position.x + 300,
+        y: siblingNode.position.y,
+      },
+      data: {
+        label: siblingNode.type === 'workflowNode' ? `New Workflow ${nodeIdCounter}` : `New Task ${nodeIdCounter}`,
+        type: siblingNode.type === 'workflowNode' ? 'Workflow' : 'Data',
+        status: 'Pending',
+        description: 'New sibling node',
+        onDelete: deleteNode,
+        onAddChild: addChildNode,
+        onAddSibling: addSiblingNode,
+      },
+    };
+
+    setNodeIdCounter(nodeIdCounter + 1);
+    setNodes((nds) => [...nds, newNode]);
+    
+    // Connect parent to new sibling
+    setEdges((eds) => [
+      ...eds,
+      {
+        id: `e-${parentEdge.source}-${newNodeId}`,
+        source: parentEdge.source,
+        target: newNodeId,
+        type: 'custom',
+        markerEnd: { type: MarkerType.ArrowClosed },
+      },
+    ]);
+  }, [nodes, edges, nodeIdCounter, deleteNode, addChildNode]);
+
+  // Add callbacks to all nodes
+  const nodesWithCallbacks = nodes.map((node) => ({
     ...node,
     data: {
       ...node.data,
       onDelete: deleteNode,
+      onAddChild: addChildNode,
+      onAddSibling: addSiblingNode,
     },
   }));
 
   return (
     <div className="flex h-screen w-screen">
       <ReactFlow
-        nodes={nodesWithDelete}
-        edges={edgesWithData}
+        nodes={nodesWithCallbacks}
+        edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        className="bg-gray-50"
+        className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
       >
-        <Background color="#aaa" gap={16} />
+        <Background 
+          color="#cbd5e1" 
+          gap={20} 
+          size={1}
+          variant="dots"
+        />
         <Controls />
       </ReactFlow>
     </div>
