@@ -11,7 +11,7 @@ export default function IconButton({ icon: Icon, tooltip, onClick, variant = "gh
             variant={variant}
             size={size}
             onClick={onClick}
-            className="rounded-full p-2"
+            className="rounded-full"
           >
             <Icon className="w-4 h-4" />
           </Button>
