@@ -2,6 +2,7 @@
 import React from "react";
 import WorkflowNode from "@/components/nodes/WorkflowNode";
 import DataInputNode from "@/components/nodes/DataInputNode";
+import BaseNode from "@/components/nodes/BaseNode";
 import CustomEdge from "@/components/nodes/CustomEdge";
 import { useState, useCallback } from 'react';
 import {
@@ -48,7 +49,7 @@ const initialNodes = [
       endpoint: 'POST /api/payments',
     },
     position: { x: 450, y: 250 },
-    type: 'dataInputNode',
+    type: 'dataInputbasNode',
   },
   {
     id: 'data-3',
@@ -62,6 +63,7 @@ const initialNodes = [
     position: { x: 700, y: 250 },
     type: 'dataInputNode',
   },
+  
 ];
 
 const initialEdges = [
@@ -102,6 +104,7 @@ export default function App() {
   const nodeTypes = { 
     workflowNode: WorkflowNode,
     dataInputNode: DataInputNode,
+    baseNode : BaseNode
   };
 
   const edgeTypes = {
