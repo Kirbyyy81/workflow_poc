@@ -4,15 +4,10 @@ import { Handle, Position } from 'reactflow';
 /**
  * BaseNode - A flexible foundation component for all node types
  * 
- * This component provides:
- * - Consistent styling and layout
- * - Configurable handles (inputs/outputs)
- * - Header with icon and title
- * - Customizable content area
- * - Footer section
- * - Status indicators
- * 
- * To create a new node type, simply wrap this component and pass custom content.
+ * Design: Warm Technical
+ * - Colors: Warm off-whites (Stone), deep charcoal text
+ * - Typography: Serif headers, Sans-serif content
+ * - Shape: Structured but approachable
  */
 
 const BaseNode = memo(({ 
@@ -31,67 +26,66 @@ const BaseNode = memo(({
   outputs = [],
 
   // Styling options
-  color = 'blue',
-  variant = 'default',
+  color = 'stone', // Default to stone
   className = '',
   // Status
   status,
   badge,
 }) => {
-  // Color schemes for different node types
+  // Muted/Warm color schemes
   const colorSchemes = {
+    stone: {
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      headerText: 'text-stone-900',
+      accent: 'text-stone-500',
+      selectedBorder: 'border-stone-400'
+    },
     blue: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-300',
-      header: 'bg-blue-500',
-      text: 'text-blue-900',
-      selectedBorder: 'border-blue-600'
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      headerText: 'text-slate-900',
+      accent: 'text-slate-500',
+      selectedBorder: 'border-slate-400'
     },
     green: {
-      bg: 'bg-green-50',
-      border: 'border-green-300',
-      header: 'bg-green-500',
-      text: 'text-green-900',
-      selectedBorder: 'border-green-600'
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      headerText: 'text-emerald-900',
+      accent: 'text-emerald-600',
+      selectedBorder: 'border-emerald-400'
     },
     purple: {
-      bg: 'bg-purple-50',
-      border: 'border-purple-300',
-      header: 'bg-purple-500',
-      text: 'text-purple-900',
-      selectedBorder: 'border-purple-600'
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      headerText: 'text-violet-900',
+      accent: 'text-violet-600',
+      selectedBorder: 'border-violet-400'
     },
     orange: {
-      bg: 'bg-orange-50',
-      border: 'border-orange-300',
-      header: 'bg-orange-500',
-      text: 'text-orange-900',
-      selectedBorder: 'border-orange-600'
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      headerText: 'text-orange-900',
+      accent: 'text-orange-600',
+      selectedBorder: 'border-orange-400'
     },
     red: {
-      bg: 'bg-red-50',
-      border: 'border-red-300',
-      header: 'bg-red-500',
-      text: 'text-red-900',
-      selectedBorder: 'border-red-600'
+      bg: 'bg-stone-50',
+      border: 'border-stone-200',
+      headerText: 'text-red-900',
+      accent: 'text-red-600',
+      selectedBorder: 'border-red-400'
     },
-    gray: {
-      bg: 'bg-gray-50',
-      border: 'border-gray-300',
-      header: 'bg-gray-500',
-      text: 'text-gray-900',
-      selectedBorder: 'border-gray-600'
-    }
   };
 
-  const colors = colorSchemes[color] || colorSchemes.blue;
+  const colors = colorSchemes[color] || colorSchemes.stone;
 
-  // Status indicator colors
+  // Status indicator colors (kept functional but slightly muted)
   const statusColors = {
-    active: 'bg-green-400',
-    idle: 'bg-gray-400',
-    error: 'bg-red-400',
-    warning: 'bg-yellow-400',
+    active: 'bg-emerald-500',
+    idle: 'bg-stone-400',
+    error: 'bg-red-500',
+    warning: 'bg-amber-400',
     processing: 'bg-blue-400 animate-pulse'
   };
 
@@ -99,10 +93,10 @@ const BaseNode = memo(({
     <div
       className={`
         ${colors.bg} 
-        ${selected ? colors.selectedBorder + ' border-2' : colors.border + ' border'} 
-        rounded-lg shadow-lg min-w-[200px] max-w-[300px]
+        ${selected ? colors.selectedBorder + ' ring-1 ring-stone-400' : colors.border + ' border'} 
+        rounded-lg shadow-sm min-w-[240px] max-w-[320px]
         transition-all duration-200
-        ${selected ? 'shadow-xl scale-105' : 'shadow-md'}
+        ${selected ? 'shadow-md' : 'hover:shadow-md'}
         ${className}
       `}
     >
@@ -115,49 +109,51 @@ const BaseNode = memo(({
           id={input.id || `input-${index}`}
           style={{
             top: input.top || `${((index + 1) * 100) / (inputs.length + 1)}%`,
-            background: input.color || '#555',
-            width: '12px',
-            height: '12px',
-            border: '2px solid white'
+            background: input.color || '#78716c', // stone-500
+            width: '8px',
+            height: '8px',
+            border: '2px solid #fafaf9', // stone-50
           }}
           className="transition-all hover:scale-125"
         />
       ))}
 
       {/* Header */}
-      <div className={`${colors.header} text-white px-4 py-3 rounded-t-lg flex items-center justify-between`}>
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {icon && <div className="flex-shrink-0 text-xl">{icon}</div>}
+      <div className={`px-4 py-3 flex items-start justify-between border-b border-stone-100`}>
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          {icon && <div className={`flex-shrink-0 mt-0.5 ${colors.accent}`}>{icon}</div>}
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm truncate">
+            <div className={`font-serif font-medium text-base leading-tight ${colors.headerText}`}>
               {title || data?.label || 'Node'}
             </div>
             {subtitle && (
-              <div className="text-xs opacity-90 truncate">{subtitle}</div>
+              <div className="text-xs text-stone-500 mt-1 font-sans truncate">{subtitle}</div>
             )}
           </div>
         </div>
         
-        {/* Status Indicator */}
-        {status && (
-          <div 
-            className={`w-2 h-2 rounded-full ${statusColors[status]} flex-shrink-0 ml-2`}
-            title={status}
-          />
-        )}
-        
-        {/* Badge */}
-        {badge && (
-          <div className="ml-2 px-2 py-0.5 bg-white bg-opacity-20 rounded text-xs flex-shrink-0">
-            {badge}
-          </div>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {/* Status Indicator */}
+          {status && (
+            <div 
+              className={`w-2 h-2 rounded-full ${statusColors[status]}`}
+              title={status}
+            />
+          )}
+          
+          {/* Badge */}
+          {badge && (
+            <div className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-medium uppercase tracking-wider">
+              {badge}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content Area */}
-      <div className={`px-4 py-3 ${colors.text}`}>
+      <div className={`px-4 py-3 text-sm text-stone-600 font-sans`}>
         {content || (
-          <div className="text-sm">
+          <div>
             {data?.description || 'Node content goes here'}
           </div>
         )}
@@ -165,7 +161,7 @@ const BaseNode = memo(({
 
       {/* Footer */}
       {footer && (
-        <div className="px-4 py-2 border-t border-gray-200 text-xs text-gray-600">
+        <div className="px-4 py-2 border-t border-stone-100 text-xs text-stone-500 bg-stone-50/50 rounded-b-lg">
           {footer}
         </div>
       )}
@@ -179,10 +175,10 @@ const BaseNode = memo(({
           id={output.id || `output-${index}`}
           style={{
             top: output.top || `${((index + 1) * 100) / (outputs.length + 1)}%`,
-            background: output.color || '#555',
-            width: '12px',
-            height: '12px',
-            border: '2px solid white'
+            background: output.color || '#78716c', // stone-500
+            width: '8px',
+            height: '8px',
+            border: '2px solid #fafaf9', // stone-50
           }}
           className="transition-all hover:scale-125"
         />
