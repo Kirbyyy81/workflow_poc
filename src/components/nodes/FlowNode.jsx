@@ -11,6 +11,7 @@ export default function FlowNode({ data, id, selected }) {
     description,
     children,
     onDelete,
+    handles,
   } = data;
 
   const handleNotify = (e) => {

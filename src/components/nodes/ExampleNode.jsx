@@ -88,12 +88,6 @@ export function EventNode({ data, id, selected }) {
       color="blue"
       status={getStatus()}
       badge="Event"
-      inputs={[
-        { position: 'left', id: 'left', color: '#3b82f6' }
-      ]}
-      outputs={[
-        { position: 'right', id: 'right', color: '#3b82f6' }
-      ]}
       content={
         <div className="space-y-2 text-xs">
           {data.description && (

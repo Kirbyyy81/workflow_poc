@@ -21,15 +21,17 @@ const BaseNode = memo(({
   content,
   footer,
 
-  // Handle configuration
-  inputs = [],
-  outputs = [],
+  // Handle configuration (will handle both I/O)
+  handles = [
+      { id: 't', position: Position.Top, offset: 50 },    // Top Center
+      { id: 'r', position: Position.Right, offset: 50 },  // Right Center
+      { id: 'b', position: Position.Bottom, offset: 50 }, // Bottom Center
+      { id: 'l', position: Position.Left, offset: 50 }    // Left Center
+],
 
   // Styling options
   color = 'stone', // Default to stone
   className = '',
-  // Status
-  status,
   badge,
 }) => {
   // Muted/Warm color schemes
@@ -80,13 +82,28 @@ const BaseNode = memo(({
 
   const colors = colorSchemes[color] || colorSchemes.stone;
 
-  // Status indicator colors (kept functional but slightly muted)
-  const statusColors = {
-    active: 'bg-emerald-500',
-    idle: 'bg-stone-400',
-    error: 'bg-red-500',
-    warning: 'bg-amber-400',
-    processing: 'bg-blue-400 animate-pulse'
+  // --- Helper to calculate handle style based on position ---
+  const getHandleStyle = (position, offset = 50) => {
+    const baseStyle = {
+      width: '10px',
+      height: '10px',
+      background: '#78716c', // Handle dot color
+      border: '2px solid #fafaf9',
+      zIndex: 10,
+    };
+
+    switch (position) {
+      case Position.Top:
+        return { ...baseStyle, top: '-5px', left: `${offset}%` };
+      case Position.Bottom:
+        return { ...baseStyle, bottom: '-5px', left: `${offset}%` };
+      case Position.Left:
+        return { ...baseStyle, left: '-5px', top: `${offset}%` };
+      case Position.Right:
+        return { ...baseStyle, right: '-5px', top: `${offset}%` };
+      default:
+        return baseStyle;
+    }
   };
 
   return (
@@ -100,23 +117,32 @@ const BaseNode = memo(({
         ${className}
       `}
     >
-      {/* Input Handles */}
-      {inputs.map((input, index) => (
-        <Handle
-          key={`input-${index}`}
-          type="target"
-          position={input.position || Position.Left}
-          id={input.id || `input-${index}`}
-          style={{
-            top: input.top || `${((index + 1) * 100) / (inputs.length + 1)}%`,
-            background: input.color || '#78716c', // stone-500
-            width: '8px',
-            height: '8px',
-            border: '2px solid #fafaf9', // stone-50
-          }}
-          className="transition-all hover:scale-125"
-        />
-      ))}
+
+      {/* Universal handles */}
+      {handles.map((handle, index) => {
+        const handleStyle = getHandleStyle(handle.position, handle.offset || 50);
+        
+        return (
+          <React.Fragment key={`handle-group-${index}`}>
+            {/* 1. The Target Handle (Input) */}
+            <Handle
+              type="target"
+              position={handle.position}
+              id={`${handle.id || index}-target`}
+              style={handleStyle}
+              className="transition-all hover:scale-125"
+            />
+            
+            {/* 2. The Source Handle (Output) */}
+            <Handle
+              type="source"
+              position={handle.position}
+              id={`${handle.id || index}-source`}
+              style={{ ...handleStyle, opacity: 0 }} 
+            />
+          </React.Fragment>
+        );
+      })}
 
       {/* Header */}
       <div className={`px-4 py-3 flex items-start justify-between border-b border-stone-100`}>
@@ -133,14 +159,6 @@ const BaseNode = memo(({
         </div>
 
         <div className="flex flex-col items-end gap-1">
-          {/* Status Indicator */}
-          {status && (
-            <div
-              className={`w-2 h-2 rounded-full ${statusColors[status]}`}
-              title={status}
-            />
-          )}
-
           {/* Badge */}
           {badge && (
             <div className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-medium uppercase tracking-wider">
@@ -165,24 +183,6 @@ const BaseNode = memo(({
           {footer}
         </div>
       )}
-
-      {/* Output Handles */}
-      {outputs.map((output, index) => (
-        <Handle
-          key={`output-${index}`}
-          type="source"
-          position={output.position || Position.Right}
-          id={output.id || `output-${index}`}
-          style={{
-            top: output.top || `${((index + 1) * 100) / (outputs.length + 1)}%`,
-            background: output.color || '#78716c', // stone-500
-            width: '8px',
-            height: '8px',
-            border: '2px solid #fafaf9', // stone-50
-          }}
-          className="transition-all hover:scale-125"
-        />
-      ))}
     </div>
   );
 });

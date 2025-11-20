@@ -91,14 +91,6 @@ export default function DataInputNode({ data, id, selected }) {
       color={color}
       status={getStatus()}
       badge={type}
-      inputs={[
-        { position: 'top', id: 'top', color: getHandleColor() },
-        { position: 'left', id: 'left', color: '#22c55e' }
-      ]}
-      outputs={[
-        { position: 'bottom', id: 'bottom', color: getHandleColor() },
-        { position: 'right', id: 'right', color: '#22c55e' }
-      ]}
       footer={
         <div className="flex justify-between items-center text-xs">
           <span className="capitalize font-medium">{data.status || 'Pending'}</span>
