@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Handle, Position } from '@xyflow/react';
 
 /**
  * BaseNode - A flexible foundation component for all node types
@@ -10,7 +10,7 @@ import { Handle, Position } from 'reactflow';
  * - Shape: Structured but approachable
  */
 
-const BaseNode = memo(({ 
+const BaseNode = memo(({
   data,
   id,
   selected,
@@ -20,7 +20,7 @@ const BaseNode = memo(({
   subtitle,
   content,
   footer,
-  
+
   // Handle configuration
   inputs = [],
   outputs = [],
@@ -131,16 +131,16 @@ const BaseNode = memo(({
             )}
           </div>
         </div>
-        
+
         <div className="flex flex-col items-end gap-1">
           {/* Status Indicator */}
           {status && (
-            <div 
+            <div
               className={`w-2 h-2 rounded-full ${statusColors[status]}`}
               title={status}
             />
           )}
-          
+
           {/* Badge */}
           {badge && (
             <div className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-medium uppercase tracking-wider">
