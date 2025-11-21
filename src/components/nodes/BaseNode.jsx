@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { Edit, Trash2 } from 'lucide-react';
 
 /**
  * BaseNode - A flexible foundation component for all node types
@@ -17,7 +18,6 @@ const BaseNode = memo(({
   // Design customization props
   icon,
   title,
-  subtitle,
   content,
   footer,
 
@@ -32,7 +32,13 @@ const BaseNode = memo(({
   // Styling options
   color = 'stone', // Default to stone
   className = '',
+  // Status
+  status,
   badge,
+
+  // Actions
+  onEdit,
+  onDelete,
 }) => {
   // Muted/Warm color schemes
   const colorSchemes = {
@@ -125,13 +131,13 @@ const BaseNode = memo(({
         return (
           <React.Fragment key={`handle-group-${index}`}>
             {/* 1. The Target Handle (Input) */}
-            <Handle
-              type="target"
+        <Handle
+          type="target"
               position={handle.position}
               id={`${handle.id || index}-target`}
               style={handleStyle}
-              className="transition-all hover:scale-125"
-            />
+          className="transition-all hover:scale-125"
+        />
             
             {/* 2. The Source Handle (Output) */}
             <Handle
@@ -152,19 +158,7 @@ const BaseNode = memo(({
             <div className={`font-serif font-medium text-base leading-tight ${colors.headerText}`}>
               {title || data?.label || 'Node'}
             </div>
-            {subtitle && (
-              <div className="text-xs text-stone-500 mt-1 font-sans truncate">{subtitle}</div>
-            )}
           </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-1">
-          {/* Badge */}
-          {badge && (
-            <div className="px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-medium uppercase tracking-wider">
-              {badge}
-            </div>
-          )}
         </div>
       </div>
 
@@ -178,11 +172,51 @@ const BaseNode = memo(({
       </div>
 
       {/* Footer */}
-      {footer && (
-        <div className="px-4 py-2 border-t border-stone-100 text-xs text-stone-500 bg-stone-50/50 rounded-b-lg">
-          {footer}
+      {(footer || onEdit || onDelete) && (
+        <div className="px-4 py-2 border-t border-stone-100 text-xs text-stone-500 bg-stone-50/50 rounded-b-lg flex justify-between items-center min-h-[36px]">
+          <div className="flex-1 mr-2">
+            {footer}
+          </div>
+          <div className="flex items-center gap-1">
+            {onEdit && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit(id); }}
+                className="p-1.5 hover:bg-stone-200 rounded-md text-stone-500 hover:text-stone-700 transition-colors"
+                title="Edit"
+              >
+                <Edit className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(id); }}
+                className="p-1.5 hover:bg-red-100 rounded-md text-stone-500 hover:text-red-600 transition-colors"
+                title="Delete"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
+
+      {/* Output Handles */}
+      {outputs.map((output, index) => (
+        <Handle
+          key={`output-${index}`}
+          type="source"
+          position={output.position || Position.Right}
+          id={output.id || `output-${index}`}
+          style={{
+            top: output.top || `${((index + 1) * 100) / (outputs.length + 1)}%`,
+            background: output.color || '#78716c', // stone-500
+            width: '8px',
+            height: '8px',
+            border: '2px solid #fafaf9', // stone-50
+          }}
+          className="transition-all hover:scale-125"
+        />
+      ))}
     </div>
   );
 });
