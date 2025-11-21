@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Edit, ExternalLink, Trash2, Box } from "lucide-react";
+import { Bell, ExternalLink, Box } from "lucide-react";
 import BaseNode from './BaseNode';
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +10,7 @@ export default function FlowNode({ data, id, selected }) {
     status = "Pending",
     description,
     children,
-    onDelete,
+    onDelete: propOnDelete, // Renamed to avoid conflict with the prop passed to BaseNode
     handles,
   } = data;
 
@@ -19,9 +19,8 @@ export default function FlowNode({ data, id, selected }) {
     console.log(`Notify for node ${id}`);
   };
 
-  const handleEdit = (e) => {
-    e.stopPropagation();
-    console.log(`Edit node ${id}`);
+  const handleEdit = (nodeId) => {
+    console.log(`Edit node ${nodeId}`);
   };
 
   const handleOpen = (e) => {
@@ -29,10 +28,9 @@ export default function FlowNode({ data, id, selected }) {
     console.log(`Open external link for node ${id}`);
   };
 
-  const handleDelete = (e) => {
-    e.stopPropagation();
-    if (onDelete) {
-      onDelete(id);
+  const handleDelete = (nodeId) => {
+    if (propOnDelete) {
+      propOnDelete(nodeId);
     }
   };
 
@@ -58,19 +56,8 @@ export default function FlowNode({ data, id, selected }) {
         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleNotify}>
           <Bell className="h-3 w-3" />
         </Button>
-        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleEdit}>
-          <Edit className="h-3 w-3" />
-        </Button>
         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleOpen}>
           <ExternalLink className="h-3 w-3" />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6 hover:text-red-600 hover:bg-red-50"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-3 w-3" />
         </Button>
       </div>
     </div>
@@ -104,6 +91,8 @@ export default function FlowNode({ data, id, selected }) {
         </div>
       }
       footer={footerContent}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
     />
   );
 }

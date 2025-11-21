@@ -50,16 +50,9 @@ export function ValidationNode({ data, id, selected }) {
       footer={
         <div className="flex justify-between items-center text-xs">
           <span className="capitalize font-medium">{data.status || 'Pending'}</span>
-          {data.onDelete && (
-            <button
-              onClick={() => data.onDelete(id)}
-              className="text-red-500 hover:text-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          )}
         </div>
       }
+      onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
     />
   );
 }
@@ -108,16 +101,9 @@ export function EventNode({ data, id, selected }) {
       footer={
         <div className="flex justify-between items-center text-xs">
           <span className="capitalize font-medium">{data.status || 'Upcoming'}</span>
-          {data.onDelete && (
-            <button
-              onClick={() => data.onDelete(id)}
-              className="text-red-500 hover:text-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          )}
         </div>
       }
+      onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
     />
   );
 }
@@ -165,6 +151,7 @@ export function DecisionNode({ data, id, selected }) {
           <span className="text-red-600">✗ No</span>
         </div>
       }
+      onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
     />
   );
 }
