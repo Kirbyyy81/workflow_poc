@@ -22,13 +22,14 @@ import WorkflowToolbar from "@/components/WorkflowToolbar";
 import { useFirestore } from "@/hooks/useFirestore";
 import { useGraphOperations } from "@/hooks/useGraphOperations";
 import { initialNodes, initialEdges } from "@/data/initialNodes";
+import { NODE_TYPES } from "@/lib/constants";
 
 // Define outside component to avoid re-creation on render
 const nodeTypes = { 
-  workflowNode: WorkflowNode,
-  dataInputNode: DataInputNode,
-  baseNode: BaseNode
-};
+    [NODE_TYPES.WORKFLOW]: WorkflowNode,
+    [NODE_TYPES.DATA_INPUT]: DataInputNode,
+    [NODE_TYPES.BASE]: BaseNode
+  };
 
 const edgeTypes = {
   custom: CustomEdge,

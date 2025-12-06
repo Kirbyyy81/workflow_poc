@@ -2,7 +2,8 @@
 import React, { memo } from 'react';
 import { Position } from '@xyflow/react';
 import { Edit, Trash2 } from 'lucide-react';
-import HandleWithAdd from './CustomHandle';
+import CustomHandle from './CustomHandle';
+import { NODE_COLORS, NODE_COLOR_SCHEMES } from '@/lib/constants';
 
 const BaseNode = memo(({
   data,
@@ -18,26 +19,17 @@ const BaseNode = memo(({
       { id: 'b', position: Position.Bottom, offset: 50 },
       { id: 'l', position: Position.Left, offset: 50 }
   ],
-  outputs = [],
+  outputs = [], // Backward compatibility
   color = 'stone',
   className = '',
   onEdit,
   onDelete,
 }) => {
   
-  // ... (Keep existing colorSchemes logic) ...
-  const colorSchemes = {
-    stone: { bg: 'bg-stone-50', border: 'border-stone-200', headerText: 'text-stone-900', accent: 'text-stone-500', selectedBorder: 'border-stone-400' },
-    blue: { bg: 'bg-stone-50', border: 'border-stone-200', headerText: 'text-slate-900', accent: 'text-slate-500', selectedBorder: 'border-slate-400' },
-    green: { bg: 'bg-stone-50', border: 'border-stone-200', headerText: 'text-emerald-900', accent: 'text-emerald-600', selectedBorder: 'border-emerald-400' },
-    purple: { bg: 'bg-stone-50', border: 'border-stone-200', headerText: 'text-violet-900', accent: 'text-violet-600', selectedBorder: 'border-violet-400' },
-    orange: { bg: 'bg-stone-50', border: 'border-stone-200', headerText: 'text-orange-900', accent: 'text-orange-600', selectedBorder: 'border-orange-400' },
-    red: { bg: 'bg-stone-50', border: 'border-stone-200', headerText: 'text-red-900', accent: 'text-red-600', selectedBorder: 'border-red-400' },
-  };
+  // Theme configuration using Constants
+const colors = NODE_COLOR_SCHEMES[color] || NODE_COLOR_SCHEMES[NODE_COLORS.STONE];
   
-  const colors = colorSchemes[color] || colorSchemes.stone;
-
-  // Calculation for styles
+  // Calculation for styles to place handle exactly on edge
   const getHandleStyle = (position, offset = 50) => {
     switch (position) {
       case Position.Top: return { top: '-5px', left: `${offset}%` };
@@ -62,17 +54,16 @@ const BaseNode = memo(({
         relative group/node
       `}
     >
-      {/* Render Universal Interactive Handles */}
+      {/* Render Interactive Handles */}
       {allHandles.map((handle, index) => {
         const positionStyle = getHandleStyle(handle.position, handle.offset || 50);
         
         return (
-          <HandleWithAdd
+          <CustomHandle
             key={`${id}-${handle.position}-${index}`}
-            id={handle.id || `${handle.position}`} // e.g. "r", "l"
+            id={handle.id || handle.position} // Pass 't', 'r', etc.
             position={handle.position}
             style={positionStyle}
-            // Logic: HandleWithAdd decides 'type' (source/target) based on the button clicked
             onAdd={(type) => {
               if (data.onAddFromHandle) {
                 data.onAddFromHandle(id, type, handle.position);
@@ -82,7 +73,7 @@ const BaseNode = memo(({
         );
       })}
 
-      {/* Header, Content, Footer (Same as before) */}
+      {/* Header */}
       <div className={`px-4 py-3 flex items-start justify-between border-b border-stone-100`}>
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {icon && <div className={`flex-shrink-0 mt-0.5 ${colors.accent}`}>{icon}</div>}
@@ -94,12 +85,14 @@ const BaseNode = memo(({
         </div>
       </div>
 
+      {/* Content */}
       <div className={`px-4 py-3 text-sm text-stone-600 font-sans`}>
         {content || (
           <div>{data?.description || 'Node content goes here'}</div>
         )}
       </div>
 
+      {/* Footer */}
       {(footer || onEdit || onDelete) && (
         <div className="px-4 py-2 border-t border-stone-100 text-xs text-stone-500 bg-stone-50/50 rounded-b-lg flex justify-between items-center min-h-[36px]">
           <div className="flex-1 mr-2">{footer}</div>
