@@ -14,6 +14,10 @@ import '@xyflow/react/dist/style.css';
 // Components
 import WorkflowNode from "@/components/nodes/WorkflowNode";
 import DataInputNode from "@/components/nodes/DataInputNode";
+import UiNode from "@/components/nodes/UiNode";
+import ApiNode from "@/components/nodes/ApiNode";
+import FlowNode from "@/components/nodes/FlowNode";
+import ConditionNode from "@/components/nodes/ConditionNode";
 import BaseNode from "@/components/nodes/BaseNode";
 import CustomEdge from "@/components/nodes/CustomEdge";
 import WorkflowToolbar from "@/components/WorkflowToolbar";
@@ -25,9 +29,13 @@ import { useGraphOperations } from "@/hooks/useGraphOperations";
 import { initialNodes, initialEdges } from "@/data/initialNodes";
 import { NODE_TYPES } from "@/lib/constants";
 
-const nodeTypes = { 
+const nodeTypes = {
   [NODE_TYPES.WORKFLOW]: WorkflowNode,
   [NODE_TYPES.DATA_INPUT]: DataInputNode,
+  [NODE_TYPES.UI]: UiNode,
+  [NODE_TYPES.API]: ApiNode,
+  [NODE_TYPES.FLOW]: FlowNode,
+  [NODE_TYPES.CONDITION]: ConditionNode,
   [NODE_TYPES.BASE]: BaseNode
 };
 
@@ -40,13 +48,13 @@ export default function App() {
   const [editingNodeId, setEditingNodeId] = useState(null);
 
   // 1. Data Layer
-  const { 
-    nodes, edges, setNodes, setEdges, saveWorkflow, isLoading 
+  const {
+    nodes, edges, setNodes, setEdges, saveWorkflow, isLoading
   } = useFirestore(initialNodes, initialEdges);
 
   // 2. Logic Layer
-  const { 
-    addNewNode, deleteNode, addNodeFromHandle, updateNodeData 
+  const {
+    addNewNode, deleteNode, addNodeFromHandle, updateNodeData
   } = useGraphOperations(nodes, setNodes, edges, setEdges);
 
   // Handlers
@@ -55,9 +63,35 @@ export default function App() {
     setIsEditSheetOpen(true);
   }, []);
 
-  const handleSaveNode = useCallback((nodeId, newData) => {
-    updateNodeData(nodeId, newData);
-  }, [updateNodeData]);
+  // Save node changes from the EditNodeSheet
+  const handleSaveNode = useCallback((nodeId, updatedData, newType) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          // If type is changing, update both type and data
+          if (newType && newType !== node.type) {
+            return {
+              ...node,
+              type: newType,
+              data: {
+                ...node.data,
+                ...updatedData,
+              },
+            };
+          }
+          // Otherwise just update data
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...updatedData,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
 
   // 3. View Layer Helpers
   const nodesWithCallbacks = useMemo(() => {
@@ -111,14 +145,14 @@ export default function App() {
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden">
       {/* 1. Top Toolbar */}
-      <WorkflowToolbar 
+      <WorkflowToolbar
         onAddNode={addNewNode}
         onSave={() => saveWorkflow(nodes, edges)}
       />
 
       {/* 2. Main Layout: Flex Row to put Canvas and Sidebar side-by-side */}
       <div className="flex-1 flex flex-row h-[calc(100vh-64px)] w-full">
-        
+
         {/* Canvas Area - Grows to fill available space */}
         <div className="flex-1 relative h-full min-w-0 bg-slate-50">
           <ReactFlow
@@ -138,13 +172,13 @@ export default function App() {
         </div>
 
         {/* Sidebar Area - Sits to the right, pushes canvas when open */}
-        <EditNodeSheet 
+        <EditNodeSheet
           isOpen={isEditSheetOpen}
           onClose={() => setIsEditSheetOpen(false)}
           node={editingNode}
           onSave={handleSaveNode}
         />
-        
+
       </div>
     </div>
   );
