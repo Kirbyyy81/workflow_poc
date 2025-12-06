@@ -1,98 +1,96 @@
+// src/components/nodes/FlowNode.jsx
 import React from 'react';
-import { Bell, ExternalLink, Box } from "lucide-react";
-import BaseNode from './BaseNode';
-import { Button } from "@/components/ui/button";
+import { Play, CheckCircle, XCircle } from "lucide-react";
+import { Handle, Position } from '@xyflow/react';
 
+/**
+ * FlowNode - Represents Start or End points in a workflow
+ * Distinct rounded capsule shape
+ */
 export default function FlowNode({ data, id, selected }) {
-  const {
-    label = "Node",
-    type = "default",
-    status = "Pending",
-    description,
-    children,
-    onDelete: propOnDelete, 
-    handles,
-  } = data;
+  const isStart = data.flowType === 'start';
+  const isEnd = data.flowType === 'end';
+  const isError = data.flowType === 'error';
 
-  const handleNotify = (e) => {
-    e.stopPropagation();
-    console.log(`Notify for node ${id}`);
-  };
-
-  const handleEdit = (nodeId) => {
-    console.log(`Edit node ${nodeId}`);
-  };
-
-  const handleOpen = (e) => {
-    e.stopPropagation();
-    console.log(`Open external link for node ${id}`);
-  };
-
-  const handleDelete = (nodeId) => {
-    if (propOnDelete) {
-      propOnDelete(nodeId);
+  // Determine colors based on flow type
+  const getColors = () => {
+    if (isStart) {
+      return {
+        bg: 'bg-green-50',
+        border: 'border-green-400',
+        text: 'text-green-700',
+        icon: 'text-green-600',
+      };
+    } else if (isError) {
+      return {
+        bg: 'bg-red-50',
+        border: 'border-red-400',
+        text: 'text-red-700',
+        icon: 'text-red-600',
+      };
+    } else {
+      return {
+        bg: 'bg-blue-50',
+        border: 'border-blue-400',
+        text: 'text-blue-700',
+        icon: 'text-blue-600',
+      };
     }
   };
 
-  const getStatus = () => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'approved':
-        return 'active';
-      case 'in progress':
-        return 'processing';
-      case 'error':
-      case 'failed':
-        return 'error';
-      default:
-        return 'idle';
-    }
-  };
+  const colors = getColors();
 
-  const footerContent = (
-    <div className="flex justify-between items-center w-full">
-      <span className="capitalize font-medium text-stone-500">{status}</span>
-      <div className="flex gap-1">
-        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleNotify}>
-          <Bell className="h-3 w-3" />
-        </Button>
-        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleOpen}>
-          <ExternalLink className="h-3 w-3" />
-        </Button>
-      </div>
-    </div>
-  );
+  // Get icon based on type
+  const getIcon = () => {
+    if (isStart) return <Play className="h-4 w-4" />;
+    if (isError) return <XCircle className="h-4 w-4" />;
+    return <CheckCircle className="h-4 w-4" />;
+  };
 
   return (
-    <BaseNode
-      data={data}
-      id={id}
-      selected={selected}
-      icon={<Box className="h-4 w-4" />}
-      title={label}
-      subtitle={type}
-      badge={type}
-      status={getStatus()}
-      color="stone"
-      inputs={[
-        { position: 'top', id: 'top' },
-        { position: 'left', id: 'left', color: '#22c55e' } // Green for sibling
-      ]}
-      outputs={[
-        { position: 'bottom', id: 'bottom' },
-        { position: 'right', id: 'right', color: '#22c55e' } // Green for sibling
-      ]}
-      content={
-        <div className="space-y-2">
-          {description && (
-            <p className="text-xs leading-relaxed">{description}</p>
-          )}
-          {children}
+    <div
+      className={`
+        relative px-6 py-3 rounded-full border-2 
+        ${colors.bg} ${colors.border}
+        ${selected ? 'ring-2 ring-offset-2 ring-blue-400' : ''}
+        shadow-md hover:shadow-lg transition-all duration-200
+        min-w-[160px]
+      `}
+    >
+      {/* Handles */}
+      {!isStart && (
+        <Handle
+          type="target"
+          position={Position.Top}
+          id="t-target"
+          className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white"
+        />
+      )}
+      {!isEnd && !isError && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="b-source"
+          className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white"
+        />
+      )}
+
+      {/* Content */}
+      <div className="flex items-center justify-center gap-2">
+        <div className={colors.icon}>
+          {getIcon()}
         </div>
-      }
-      footer={footerContent}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-    />
+        <div className={`font-semibold text-sm ${colors.text}`}>
+          {data.label || (isStart ? 'Start' : isError ? 'Error' : 'End')}
+        </div>
+      </div>
+
+      {/* Trigger/Condition */}
+      {data.trigger && (
+        <div className="text-xs text-center mt-1 text-slate-600">
+          {data.trigger}
+        </div>
+      )}
+    </div>
   );
 }
