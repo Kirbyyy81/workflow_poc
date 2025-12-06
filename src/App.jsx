@@ -1,10 +1,5 @@
 // src/App.jsx
-import React from "react";
-import WorkflowNode from "@/components/nodes/WorkflowNode";
-import DataInputNode from "@/components/nodes/DataInputNode";
-import BaseNode from "@/components/nodes/BaseNode";
-import CustomEdge from "@/components/nodes/CustomEdge";
-import { useState, useCallback } from 'react';
+import React, { useCallback } from "react";
 import {
   ReactFlow,
   Controls,
@@ -15,6 +10,16 @@ import {
   MarkerType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+
+// Component Imports
+import WorkflowNode from "@/components/nodes/WorkflowNode";
+import DataInputNode from "@/components/nodes/DataInputNode";
+import BaseNode from "@/components/nodes/BaseNode";
+import CustomEdge from "@/components/nodes/CustomEdge";
+import { Button } from "@/components/ui/button";
+
+// Integration Imports
+import { useFirestore } from "@/hooks/useFirestore";
 
 const initialNodes = [
   {
@@ -63,7 +68,6 @@ const initialNodes = [
     position: { x: 700, y: 250 },
     type: 'dataInputNode',
   },
-  
 ];
 
 const initialEdges = [
@@ -72,34 +76,34 @@ const initialEdges = [
     source: 'workflow-1',
     target: 'data-1',
     type: 'custom',
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-    },
+    markerEnd: { type: MarkerType.ArrowClosed },
   },
   {
     id: 'e-workflow-1-data-2',
     source: 'workflow-1',
     target: 'data-2',
     type: 'custom',
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-    },
+    markerEnd: { type: MarkerType.ArrowClosed },
   },
   {
     id: 'e-workflow-1-data-3',
     source: 'workflow-1',
     target: 'data-3',
     type: 'custom',
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-    },
+    markerEnd: { type: MarkerType.ArrowClosed },
   },
 ];
 
 export default function App() {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
-  const [nodeIdCounter, setNodeIdCounter] = useState(4);
+  // 1. INTEGRATION: Use the Firestore hook instead of local state
+  const { 
+    nodes, 
+    edges, 
+    setNodes, 
+    setEdges, 
+    saveWorkflow, 
+    isLoading 
+  } = useFirestore(initialNodes, initialEdges);
 
   const nodeTypes = { 
     workflowNode: WorkflowNode,
@@ -113,12 +117,12 @@ export default function App() {
 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [],
+    [setNodes],
   );
 
   const onEdgesChange = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [],
+    [setEdges],
   );
 
   const onConnect = useCallback(
@@ -132,20 +136,21 @@ export default function App() {
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [],
+    [setEdges],
   );
 
   const deleteNode = useCallback((nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-  }, []);
+  }, [setNodes, setEdges]);
 
   const addChildNode = useCallback((parentId) => {
     const parentNode = nodes.find((n) => n.id === parentId);
     if (!parentNode) return;
 
-    const newNodeId = `data-${nodeIdCounter}`;
-    const isWorkflowParent = parentNode.type === 'workflowNode';
+    // 2. INTEGRATION: Use UUIDs instead of counters to avoid DB collisions
+    const uniqueId = crypto.randomUUID().slice(0, 8);
+    const newNodeId = `data-${uniqueId}`;
     
     // Calculate position below the parent
     const newNode = {
@@ -156,7 +161,7 @@ export default function App() {
         y: parentNode.position.y + 200,
       },
       data: {
-        label: `New Task ${nodeIdCounter}`,
+        label: `New Task`,
         type: 'Data',
         status: 'Pending',
         description: 'New task node',
@@ -166,7 +171,6 @@ export default function App() {
       },
     };
 
-    setNodeIdCounter(nodeIdCounter + 1);
     setNodes((nds) => [...nds, newNode]);
     
     // Create edge from parent to new child
@@ -180,7 +184,7 @@ export default function App() {
         markerEnd: { type: MarkerType.ArrowClosed },
       },
     ]);
-  }, [nodes, nodeIdCounter, deleteNode]);
+  }, [nodes, deleteNode]); // Removed nodeIdCounter dependency
 
   const addSiblingNode = useCallback((siblingId) => {
     const siblingNode = nodes.find((n) => n.id === siblingId);
@@ -190,7 +194,11 @@ export default function App() {
     const parentEdge = edges.find((e) => e.target === siblingId);
     if (!parentEdge) return;
 
-    const newNodeId = siblingNode.type === 'workflowNode' ? `workflow-${nodeIdCounter}` : `data-${nodeIdCounter}`;
+    // 2. INTEGRATION: Use UUIDs
+    const uniqueId = crypto.randomUUID().slice(0, 8);
+    const newNodeId = siblingNode.type === 'workflowNode' 
+      ? `workflow-${uniqueId}` 
+      : `data-${uniqueId}`;
     
     // Calculate position to the right of sibling
     const newNode = {
@@ -201,7 +209,7 @@ export default function App() {
         y: siblingNode.position.y,
       },
       data: {
-        label: siblingNode.type === 'workflowNode' ? `New Workflow ${nodeIdCounter}` : `New Task ${nodeIdCounter}`,
+        label: siblingNode.type === 'workflowNode' ? `New Workflow` : `New Task`,
         type: siblingNode.type === 'workflowNode' ? 'Workflow' : 'Data',
         status: 'Pending',
         description: 'New sibling node',
@@ -211,7 +219,6 @@ export default function App() {
       },
     };
 
-    setNodeIdCounter(nodeIdCounter + 1);
     setNodes((nds) => [...nds, newNode]);
     
     // Connect parent to new sibling
@@ -225,7 +232,7 @@ export default function App() {
         markerEnd: { type: MarkerType.ArrowClosed },
       },
     ]);
-  }, [nodes, edges, nodeIdCounter, deleteNode, addChildNode]);
+  }, [nodes, edges, deleteNode, addChildNode]); // Removed nodeIdCounter dependency
 
   // Add callbacks to all nodes
   const nodesWithCallbacks = nodes.map((node) => ({
@@ -238,27 +245,55 @@ export default function App() {
     },
   }));
 
+  // 3. INTEGRATION: Loading State UI
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-slate-600"></div>
+          <p className="text-slate-500 font-medium">Loading Workflow...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen w-screen">
-      <ReactFlow
-        nodes={nodesWithCallbacks}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        fitView
-        className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
-      >
-        <Background 
-          color="#cbd5e1" 
-          gap={20} 
-          size={1}
-          variant="dots"
-        />
-        <Controls />
-      </ReactFlow>
+    <div className="flex h-screen w-screen flex-col">
+      {/* 4. INTEGRATION: Top Toolbar for Saving */}
+      <div className="flex h-16 items-center justify-between border-b bg-white px-6 shadow-sm z-10">
+        <div>
+          <h1 className="text-lg font-bold text-slate-800">Workflow POC</h1>
+          <p className="text-xs text-slate-500">Firestore Connected</p>
+        </div>
+        <Button 
+          onClick={() => saveWorkflow(nodes, edges)}
+          className="bg-slate-900 text-white hover:bg-slate-800"
+        >
+          Save Changes
+        </Button>
+      </div>
+
+      <div className="flex-1 w-full h-full">
+        <ReactFlow
+          nodes={nodesWithCallbacks}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+          className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
+        >
+          <Background 
+            color="#cbd5e1" 
+            gap={20} 
+            size={1}
+            variant="dots"
+          />
+          <Controls />
+        </ReactFlow>
+      </div>
     </div>
   );
 }
