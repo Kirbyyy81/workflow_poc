@@ -49,7 +49,7 @@ const initialNodes = [
       endpoint: 'POST /api/payments',
     },
     position: { x: 450, y: 250 },
-    type: 'dataInputbasNode',
+    type: 'dataInputNode',
   },
   {
     id: 'data-3',
