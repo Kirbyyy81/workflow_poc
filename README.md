@@ -1,87 +1,49 @@
 # 🧭 Workflow Management System (POC)
 
-A Proof of Concept for a visual workflow management system built with React. This tool helps teams visualize, manage, and collaborate on complex project flows in a centralized hub.
-
-## 📜 Table of Contents
-
-- [Features](#-features)
-- [Conceptual Model](#-conceptual-model)
-- [Tech Stack](#-tech-stack)
-- [Setup and Run](#-setup-and-run)
-- [Future Work](#-future-work)
+A Proof of Concept for a visual workflow management system built with React 19 and Vite. This tool helps teams visualize, manage, and collaborate on complex project flows in a centralized, persistent hub backed by Firestore.
 
 ## ✨ Features
 
-*   **Visual Workflow Builder:** Create and connect nodes to represent project workflows using a drag-and-drop interface.
-*   **Embed Live Figma Previews:** Embed Figma designs directly into workflow nodes for seamless design-to-development collaboration.
-*   **Hierarchical Structure:** Organize complex workflows with parent nodes representing the overall process and subnodes for individual components (UI, API, etc.).
-*   **Node-to-Node Connections:** Visualize dependencies and relationships between different parts of your workflow.
-
-## 🧠 Conceptual Model
-
-The system uses a hierarchical model:
-
-*   **Parent Node (Workflow):** Represents the entire process, like a "Customer Purchase Flow."
-    ```json
-    {
-      "id": "workflow_001",
-      "type": "parent_node",
-      "title": "Customer Purchase Flow",
-      "status": "In Review",
-      "subnodes": ["node_ui_checkout", "node_api_payment"]
-    }
-    ```
-*   **Subnodes (Components):** Represent individual parts of the workflow.
-
-    *   **UI Node (Figma):**
-        ```json
-        {
-          "id": "node_ui_checkout",
-          "type": "ui_figma",
-          "title": "Checkout Screen",
-          "figmaEmbed": "https://www.figma.com/embed?embed_host=share&url=...",
-          "status": "Approved"
-        }
-        ```
-    *   **API Node:**
-        ```json
-        {
-          "id": "node_api_payment",
-          "type": "api",
-          "title": "Payment Endpoint",
-          "endpoint": "POST /api/payments",
-          "status": "In Progress"
-        }
-        ```
+* **Visual Workflow Builder:** Create and arrange nodes on an infinite canvas using [React Flow](https://reactflow.dev/).
+* **Interactive Graph Construction:**
+    * **Contextual Adding:** Hover over any node handle to instantly add a "Parent" (Previous Step) or "Child" (Next Step) node.
+    * **Auto-Linking:** Nodes created via handles are automatically connected with directional edges.
+* **Property Editor:** A side-panel interface to edit node details including titles, descriptions, statuses, and external links (Figma/API).
+* **Cloud Persistence:** Real-time saving and loading of workflow layouts using **Firebase Firestore**.
+* **Dynamic Node States:** Visual indicators for node statuses (Pending, In Progress, Approved, etc.) using a custom color-coded design system.
 
 ## 🛠️ Tech Stack
 
-*   **Frontend:** React, Vite
-*   **Workflow Visualization:** [React Flow](https://reactflow.dev/)
-*   **Styling:** Tailwind CSS
+* **Frontend:** React 19, Vite
+* **Visualization:** @xyflow/react (React Flow)
+* **Styling:** Tailwind CSS v4, `clsx`, `tailwind-merge`
+* **Icons:** Lucide React
+* **Backend / Storage:** Firebase Firestore
+* **Architecture:** Modular hook-based logic (`useGraphOperations`, `useFirestore`)
 
-## 📂 File Structure
+## 📂 Project Structure
 
-```
-.
-├── .github/
-│   └── workflows/
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   │   ├── nodes/
-│   │   ├── ui/
-│   │   └── ...
-│   ├── lib/
-│   ├── App.jsx
-│   └── main.jsx
-├── .gitignore
-├── index.html
-├── package.json
-├── vite.config.js
-└── README.md
-```
+```text
+src/
+├── components/
+│   ├── nodes/          # Custom Node & Handle components
+│   │   ├── BaseNode.jsx    # UI Shell for all nodes
+│   │   ├── CustomHandle.jsx # Handle with "+" button logic
+│   │   ├── WorkflowNode.jsx
+│   │   └── DataInputNode.jsx
+│   ├── ui/             # Reusable UI elements (Button, Card, Badge)
+│   ├── EditNodeSheet.jsx # Side panel for editing node data
+│   └── WorkflowToolbar.jsx # Top action bar
+├── hooks/
+│   ├── useGraphOperations.js # Logic for adding/deleting/modifying nodes
+│   └── useFirestore.js       # Database sync logic
+├── lib/
+│   ├── constants.js    # Central config for Types, Colors, and Layouts
+│   └── firebase.js     # Firebase SDK initialization
+├── services/
+│   └── storage/        # Storage service abstractions
+├── data/               # Initial/Fallback data sets
+└── App.jsx             # Main application orchestrator
 
 ## 🚀 Setup and Run
 
