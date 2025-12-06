@@ -199,24 +199,6 @@ const BaseNode = memo(({
           </div>
         </div>
       )}
-
-      {/* Output Handles */}
-      {outputs.map((output, index) => (
-        <Handle
-          key={`output-${index}`}
-          type="source"
-          position={output.position || Position.Right}
-          id={output.id || `output-${index}`}
-          style={{
-            top: output.top || `${((index + 1) * 100) / (outputs.length + 1)}%`,
-            background: output.color || '#78716c', // stone-500
-            width: '8px',
-            height: '8px',
-            border: '2px solid #fafaf9', // stone-50
-          }}
-          className="transition-all hover:scale-125"
-        />
-      ))}
     </div>
   );
 });
