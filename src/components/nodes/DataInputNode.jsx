@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Database, Code, Layout, FileJson } from "lucide-react";
 import BaseNode from './BaseNode';
+import FigmaPreview from '@/components/figma/FigmaPreview';
+import FigmaViewerModal from '@/components/figma/FigmaViewerModal';
 
 /**
  * Type-specific icon mapping
@@ -29,6 +31,8 @@ const TYPE_TO_COLOR = {
  * Uses BaseNode with dynamic theming based on node type
  */
 export default function DataInputNode({ data, id, selected }) {
+  const [isFigmaModalOpen, setIsFigmaModalOpen] = useState(false);
+
   const type = data.type || 'Data';
   const icon = TYPE_ICONS[type] || TYPE_ICONS['Data'];
   const color = TYPE_TO_COLOR[type] || 'orange';
@@ -55,14 +59,10 @@ export default function DataInputNode({ data, id, selected }) {
         </div>
       )}
       {data.figmaUrl && (
-        <a
-          href={data.figmaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 underline block"
-        >
-          View in Figma →
-        </a>
+        <FigmaPreview
+          url={data.figmaUrl}
+          onViewClick={() => setIsFigmaModalOpen(true)}
+        />
       )}
     </div>
   );
@@ -80,24 +80,33 @@ export default function DataInputNode({ data, id, selected }) {
   };
 
   return (
-    <BaseNode
-      data={data}
-      id={id}
-      selected={selected}
-      icon={icon}
-      title={data.label || "Data Input"}
-      subtitle={type}
-      content={content}
-      color={color}
-      status={getStatus()}
-      badge={type}
-      footer={
-        <div className="flex justify-between items-center text-xs">
-          <span className="capitalize font-medium">{data.status || 'Pending'}</span>
-        </div>
-      }
-      onEdit={data.onEdit ? () => data.onEdit(id) : undefined}
-      onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
-    />
+    <>
+      <BaseNode
+        data={data}
+        id={id}
+        selected={selected}
+        icon={icon}
+        title={data.label || "Data Input"}
+        subtitle={type}
+        content={content}
+        color={color}
+        status={getStatus()}
+        badge={type}
+        footer={
+          <div className="flex justify-between items-center text-xs">
+            <span className="capitalize font-medium">{data.status || 'Pending'}</span>
+          </div>
+        }
+        onEdit={data.onEdit ? () => data.onEdit(id) : undefined}
+        onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
+      />
+
+      {/* Figma Viewer Modal */}
+      <FigmaViewerModal
+        isOpen={isFigmaModalOpen}
+        onClose={() => setIsFigmaModalOpen(false)}
+        url={data.figmaUrl}
+      />
+    </>
   );
 }
