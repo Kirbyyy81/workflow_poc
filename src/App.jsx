@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ReactFlow,
   Controls,
@@ -17,6 +17,7 @@ import DataInputNode from "@/components/nodes/DataInputNode";
 import BaseNode from "@/components/nodes/BaseNode";
 import CustomEdge from "@/components/nodes/CustomEdge";
 import WorkflowToolbar from "@/components/WorkflowToolbar";
+import EditNodeSheet from "@/components/EditNodeSheet";
 
 // Logic & Data
 import { useFirestore } from "@/hooks/useFirestore";
@@ -24,29 +25,39 @@ import { useGraphOperations } from "@/hooks/useGraphOperations";
 import { initialNodes, initialEdges } from "@/data/initialNodes";
 import { NODE_TYPES } from "@/lib/constants";
 
-// Define outside component to avoid re-creation on render
 const nodeTypes = { 
-    [NODE_TYPES.WORKFLOW]: WorkflowNode,
-    [NODE_TYPES.DATA_INPUT]: DataInputNode,
-    [NODE_TYPES.BASE]: BaseNode
-  };
+  [NODE_TYPES.WORKFLOW]: WorkflowNode,
+  [NODE_TYPES.DATA_INPUT]: DataInputNode,
+  [NODE_TYPES.BASE]: BaseNode
+};
 
 const edgeTypes = {
   custom: CustomEdge,
 };
 
 export default function App() {
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [editingNodeId, setEditingNodeId] = useState(null);
+
   // 1. Data Layer
-  const { nodes, edges, setNodes, setEdges, saveWorkflow, isLoading } = useFirestore(initialNodes, initialEdges);
+  const { 
+    nodes, edges, setNodes, setEdges, saveWorkflow, isLoading 
+  } = useFirestore(initialNodes, initialEdges);
 
   // 2. Logic Layer
   const { 
-    addNewNode, 
-    deleteNode, 
-    addChildNode, 
-    addSiblingNode,
-    addNodeFromHandle // <--- Get the new function
+    addNewNode, deleteNode, addNodeFromHandle, updateNodeData 
   } = useGraphOperations(nodes, setNodes, edges, setEdges);
+
+  // Handlers
+  const handleEditNode = useCallback((nodeId) => {
+    setEditingNodeId(nodeId);
+    setIsEditSheetOpen(true);
+  }, []);
+
+  const handleSaveNode = useCallback((nodeId, newData) => {
+    updateNodeData(nodeId, newData);
+  }, [updateNodeData]);
 
   // 3. View Layer Helpers
   const nodesWithCallbacks = useMemo(() => {
@@ -55,14 +66,13 @@ export default function App() {
       data: {
         ...node.data,
         onDelete: deleteNode,
-        onAddChild: addChildNode,
-        onAddSibling: addSiblingNode,
-        onAddFromHandle: addNodeFromHandle, // <--- Pass it to data
+        onAddFromHandle: addNodeFromHandle,
+        onEdit: handleEditNode,
       },
     }));
-  }, [nodes, deleteNode, addChildNode, addSiblingNode, addNodeFromHandle]);
+  }, [nodes, deleteNode, addNodeFromHandle, handleEditNode]);
 
-  // React Flow Standard Handlers
+  // React Flow Handlers
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes]
@@ -85,7 +95,8 @@ export default function App() {
     [setEdges]
   );
 
-  // Loading State
+  const editingNode = nodes.find(n => n.id === editingNodeId);
+
   if (isLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50">
@@ -98,27 +109,42 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col">
+    <div className="flex h-screen w-screen flex-col overflow-hidden">
+      {/* 1. Top Toolbar */}
       <WorkflowToolbar 
         onAddNode={addNewNode}
         onSave={() => saveWorkflow(nodes, edges)}
       />
 
-      <div className="flex-1 w-full h-full">
-        <ReactFlow
-          nodes={nodesWithCallbacks}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
-        >
-          <Background color="#cbd5e1" gap={20} size={1} variant="dots" />
-          <Controls />
-        </ReactFlow>
+      {/* 2. Main Layout: Flex Row to put Canvas and Sidebar side-by-side */}
+      <div className="flex-1 flex flex-row h-[calc(100vh-64px)] w-full">
+        
+        {/* Canvas Area - Grows to fill available space */}
+        <div className="flex-1 relative h-full min-w-0 bg-slate-50">
+          <ReactFlow
+            nodes={nodesWithCallbacks}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            fitView
+            className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950"
+          >
+            <Background color="#cbd5e1" gap={20} size={1} variant="dots" />
+            <Controls />
+          </ReactFlow>
+        </div>
+
+        {/* Sidebar Area - Sits to the right, pushes canvas when open */}
+        <EditNodeSheet 
+          isOpen={isEditSheetOpen}
+          onClose={() => setIsEditSheetOpen(false)}
+          node={editingNode}
+          onSave={handleSaveNode}
+        />
+        
       </div>
     </div>
   );

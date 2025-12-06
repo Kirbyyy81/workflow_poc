@@ -10,7 +10,7 @@ export default function FlowNode({ data, id, selected }) {
     status = "Pending",
     description,
     children,
-    onDelete: propOnDelete, // Renamed to avoid conflict with the prop passed to BaseNode
+    onDelete: propOnDelete, 
     handles,
   } = data;
 

@@ -41,6 +41,7 @@ export default function WorkflowNode({ data, id, selected }) {
         <span className="capitalize font-medium">{data.status || 'Upcoming'}</span>
       </div>
       }
+      onEdit={data.onEdit ? () => data.onEdit(id) : undefined}
       onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
     />
   );

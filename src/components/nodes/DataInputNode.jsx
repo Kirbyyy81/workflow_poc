@@ -96,6 +96,7 @@ export default function DataInputNode({ data, id, selected }) {
           <span className="capitalize font-medium">{data.status || 'Pending'}</span>
         </div>
       }
+      onEdit={data.onEdit ? () => data.onEdit(id) : undefined}
       onDelete={data.onDelete ? () => data.onDelete(id) : undefined}
     />
   );
