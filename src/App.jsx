@@ -35,18 +35,19 @@ const edgeTypes = {
 };
 
 export default function App() {
-  // 1. Data Layer (Firestore)
-  const { 
-    nodes, edges, setNodes, setEdges, saveWorkflow, isLoading 
-  } = useFirestore(initialNodes, initialEdges);
+  // 1. Data Layer
+  const { nodes, edges, setNodes, setEdges, saveWorkflow, isLoading } = useFirestore(initialNodes, initialEdges);
 
-  // 2. Logic Layer (Graph Ops)
+  // 2. Logic Layer
   const { 
-    addNewNode, deleteNode, addChildNode, addSiblingNode 
+    addNewNode, 
+    deleteNode, 
+    addChildNode, 
+    addSiblingNode,
+    addNodeFromHandle // <--- Get the new function
   } = useGraphOperations(nodes, setNodes, edges, setEdges);
 
   // 3. View Layer Helpers
-  // Inject callbacks into nodes for the UI to use
   const nodesWithCallbacks = useMemo(() => {
     return nodes.map((node) => ({
       ...node,
@@ -55,9 +56,10 @@ export default function App() {
         onDelete: deleteNode,
         onAddChild: addChildNode,
         onAddSibling: addSiblingNode,
+        onAddFromHandle: addNodeFromHandle, // <--- Pass it to data
       },
     }));
-  }, [nodes, deleteNode, addChildNode, addSiblingNode]);
+  }, [nodes, deleteNode, addChildNode, addSiblingNode, addNodeFromHandle]);
 
   // React Flow Standard Handlers
   const onNodesChange = useCallback(
