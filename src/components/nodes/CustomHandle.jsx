@@ -1,9 +1,9 @@
-// src/components/nodes/HandleWithAdd.jsx
+// src/components/nodes/CustomHandle.jsx
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Plus } from 'lucide-react';
 
-export default function HandleWithAdd({ 
+export default function CustomHandle({ 
   position, 
   id, 
   onAdd, 
@@ -30,37 +30,38 @@ export default function HandleWithAdd({
         width: '10px', 
         height: '10px',
         border: 'none',
-        background: 'transparent'
+        background: 'transparent',
+        pointerEvents: 'none' // Let clicks pass through to handles/buttons
       }}
     >
-      {/* 1. TARGET HANDLE (Visible Base) 
-          Allows incoming connections */}
+      {/* 1. TARGET HANDLE (Visible Base) - Allows incoming connections */}
       <Handle
         type="target"
         position={position}
-        id={`${id}-target`} // RESTORED ID SUFFIX
+        id={`${id}-target`} 
         style={{
           position: 'absolute',
           top: 0, left: 0, width: '100%', height: '100%',
           background: '#78716c', 
           border: '2px solid #fafaf9',
           borderRadius: '50%',
-          zIndex: 10
+          zIndex: 10,
+          pointerEvents: 'auto'
         }}
         className={className}
       />
 
-      {/* 2. SOURCE HANDLE (Invisible Overlay) 
-          Allows dragging NEW connections out */}
+      {/* 2. SOURCE HANDLE (Invisible Overlay) - Allows dragging NEW connections */}
       <Handle
         type="source"
         position={position}
-        id={`${id}-source`} // RESTORED ID SUFFIX
+        id={`${id}-source`}
         style={{
           position: 'absolute',
           top: 0, left: 0, width: '100%', height: '100%',
           opacity: 0, // Invisible but clickable
-          zIndex: 11
+          zIndex: 11,
+          pointerEvents: 'auto'
         }}
       />
 
@@ -68,8 +69,6 @@ export default function HandleWithAdd({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          // If Output side, treat as Source (add Child). 
-          // If Input side, treat as Target (add Parent).
           onAdd(isOutputSide ? 'source' : 'target');
         }}
         className={`

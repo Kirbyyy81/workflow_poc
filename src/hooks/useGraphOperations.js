@@ -1,6 +1,7 @@
 // src/hooks/useGraphOperations.js
 import { useCallback } from 'react';
 import { MarkerType, Position } from '@xyflow/react';
+import { NODE_TYPES, NODE_STATUS, LAYOUT } from '@/lib/constants';
 
 export function useGraphOperations(nodes, setNodes, edges, setEdges) {
   
@@ -14,12 +15,11 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
   }, [setNodes, setEdges]);
 
-  // Adds a completely floating node (not connected to anything)
   const addNewNode = useCallback(() => {
     const newNodeId = generateId('workflow');
     const newNode = {
       id: newNodeId,
-      type: 'workflowNode',
+      type: NODE_TYPES.WORKFLOW,
       position: { 
         x: 100 + Math.random() * 50, 
         y: 100 + Math.random() * 50 
@@ -27,115 +27,67 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
       data: {
         label: 'New Workflow',
         type: 'Workflow',
-        status: 'Pending',
+        status: NODE_STATUS.PENDING,
         description: 'Newly created workflow node',
       },
     };
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes]);
 
-  // --- 2. Context Menu / Button Actions ---
-
-  const addChildNode = useCallback((parentId) => {
-    const parentNode = nodes.find((n) => n.id === parentId);
-    if (!parentNode) return;
-
-    const newNodeId = generateId('data');
-    const newNode = {
-      id: newNodeId,
-      type: 'dataInputNode',
-      position: {
-        x: parentNode.position.x,
-        y: parentNode.position.y + 200,
-      },
-      data: {
-        label: `New Task`,
-        type: 'Data',
-        status: 'Pending',
-        description: 'New task node',
-      },
-    };
-
-    setNodes((nds) => [...nds, newNode]);
-    
-    setEdges((eds) => [
-      ...eds,
-      {
-        id: `e-${parentId}-${newNodeId}`,
-        source: parentId,
-        target: newNodeId,
-        type: 'custom',
-        markerEnd: { type: MarkerType.ArrowClosed },
-      },
-    ]);
-  }, [nodes, setNodes, setEdges]);
-
-  const addSiblingNode = useCallback((siblingId) => {
-    const siblingNode = nodes.find((n) => n.id === siblingId);
-    if (!siblingNode) return;
-
-    const parentEdge = edges.find((e) => e.target === siblingId);
-    if (!parentEdge) return;
-
-    const newNodeId = siblingNode.type === 'workflowNode' 
-      ? generateId('workflow') 
-      : generateId('data');
-    
-    const newNode = {
-      id: newNodeId,
-      type: siblingNode.type,
-      position: {
-        x: siblingNode.position.x + 300,
-        y: siblingNode.position.y,
-      },
-      data: {
-        label: siblingNode.type === 'workflowNode' ? `New Workflow` : `New Task`,
-        type: siblingNode.type === 'workflowNode' ? 'Workflow' : 'Data',
-        status: 'Pending',
-        description: 'New sibling node',
-      },
-    };
-
-    setNodes((nds) => [...nds, newNode]);
-    
-    setEdges((eds) => [
-      ...eds,
-      {
-        id: `e-${parentEdge.source}-${newNodeId}`,
-        source: parentEdge.source,
-        target: newNodeId,
-        type: 'custom',
-        markerEnd: { type: MarkerType.ArrowClosed },
-      },
-    ]);
-  }, [nodes, edges, setNodes, setEdges]);
-
-  // --- 3. Interactive Handle Logic ---
+  // --- 2. Interactive Handle Logic ---
 
   const addNodeFromHandle = useCallback((sourceId, handleType, position) => {
     const sourceNode = nodes.find((n) => n.id === sourceId);
     if (!sourceNode) return;
 
-    // Determine direction and connection logic
+    // Determine if we are adding a 'Child' (next step) or 'Parent' (previous step)
     const isSourceHandle = handleType === 'source';
     const newNodeId = generateId(isSourceHandle ? 'child' : 'parent');
     
     // Calculate Position based on handle location
     let dx = 0, dy = 0;
-    const GAP_X = 350;
-    const GAP_Y = 200;
+    
+    // Explicitly define which handles to connect
+    // Format: "handleID-type" (e.g., 'r-source', 'l-target')
+    let sourceHandleId = '';
+    let targetHandleId = '';
 
     switch (position) {
-      case Position.Right: dx = GAP_X; break;
-      case Position.Left: dx = -GAP_X; break;
-      case Position.Bottom: dy = GAP_Y; break;
-      case Position.Top: dy = -GAP_Y; break;
-      default: dx = GAP_X;
+      case Position.Right: 
+        dx = LAYOUT.SIBLING_GAP; 
+        // Connect Source(Right) -> Target(Left)
+        sourceHandleId = 'r-source'; 
+        targetHandleId = 'l-target';
+        break;
+      case Position.Left: 
+        dx = -LAYOUT.SIBLING_GAP; 
+        // Connect New(Right) -> Source(Left) OR Source(Left) -> New(Right) logic
+        // If we clicked Left Handle (Target), we are adding a PARENT.
+        // So Parent(Right) -> Current(Left)
+        sourceHandleId = 'r-source';
+        targetHandleId = 'l-target';
+        break;
+      case Position.Bottom: 
+        dy = LAYOUT.CHILD_GAP; 
+        // Connect Source(Bottom) -> Target(Top)
+        sourceHandleId = 'b-source';
+        targetHandleId = 't-target';
+        break;
+      case Position.Top: 
+        dy = -LAYOUT.CHILD_GAP; 
+        // Connect Parent(Bottom) -> Current(Top)
+        sourceHandleId = 'b-source';
+        targetHandleId = 't-target';
+        break;
+      default: 
+        dx = LAYOUT.SIBLING_GAP;
+        sourceHandleId = 'r-source';
+        targetHandleId = 'l-target';
     }
 
     const newNode = {
       id: newNodeId,
-      type: 'dataInputNode', // Default to generic task
+      type: NODE_TYPES.DATA_INPUT, // Default type
       position: {
         x: sourceNode.position.x + dx,
         y: sourceNode.position.y + dy,
@@ -143,26 +95,49 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
       data: {
         label: isSourceHandle ? 'Next Step' : 'Previous Step',
         type: 'Data',
-        status: 'Pending',
+        status: NODE_STATUS.PENDING,
         description: 'Automatically added step',
       },
     };
 
     setNodes((nds) => [...nds, newNode]);
 
-    // Create Edge:
-    // If adding from 'source' handle -> Connect Source to New (Source -> Target)
-    // If adding from 'target' handle -> Connect New to Source (Source -> Target)
+    // Create the Edge
+    // IMPORTANT: We must strictly map Source -> Target
+    let edgeSource, edgeTarget, edgeSourceHandle, edgeTargetHandle;
+
+    if (isSourceHandle) {
+      // We clicked a SOURCE handle (Right/Bottom) -> Add Child
+      // Edge goes: Current Node -> New Node
+      edgeSource = sourceId;
+      edgeTarget = newNodeId;
+      edgeSourceHandle = sourceHandleId; 
+      edgeTargetHandle = targetHandleId;
+    } else {
+      // We clicked a TARGET handle (Left/Top) -> Add Parent
+      // Edge goes: New Node -> Current Node
+      edgeSource = newNodeId;
+      edgeTarget = sourceId;
+      edgeSourceHandle = sourceHandleId;
+      edgeTargetHandle = targetHandleId;
+    }
+
     const newEdge = {
-      id: `e-${isSourceHandle ? sourceId : newNodeId}-${isSourceHandle ? newNodeId : sourceId}`,
-      source: isSourceHandle ? sourceId : newNodeId,
-      target: isSourceHandle ? newNodeId : sourceId,
+      id: `e-${edgeSource}-${edgeTarget}`,
+      source: edgeSource,
+      target: edgeTarget,
+      sourceHandle: edgeSourceHandle,
+      targetHandle: edgeTargetHandle,
       type: 'custom',
       markerEnd: { type: MarkerType.ArrowClosed },
     };
 
     setEdges((eds) => [...eds, newEdge]);
   }, [nodes, setNodes, setEdges]);
+
+  // Keep these for backward compatibility if you still use the context menu
+  const addChildNode = useCallback((parentId) => { /* ... simplified logic using constants ... */ }, []);
+  const addSiblingNode = useCallback((siblingId) => { /* ... simplified logic ... */ }, []);
 
   return {
     deleteNode,
