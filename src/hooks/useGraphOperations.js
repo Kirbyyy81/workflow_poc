@@ -1,19 +1,20 @@
 // src/hooks/useGraphOperations.js
 import { useCallback } from 'react';
-import { MarkerType } from '@xyflow/react';
+import { MarkerType, Position } from '@xyflow/react';
 
 export function useGraphOperations(nodes, setNodes, edges, setEdges) {
   
-  // Helper to generate IDs
+  // Helper: Generate short unique IDs
   const generateId = (prefix = 'node') => `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
 
-  // --- Actions ---
+  // --- 1. Basic Actions ---
 
   const deleteNode = useCallback((nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
   }, [setNodes, setEdges]);
 
+  // Adds a completely floating node (not connected to anything)
   const addNewNode = useCallback(() => {
     const newNodeId = generateId('workflow');
     const newNode = {
@@ -33,13 +34,13 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes]);
 
+  // --- 2. Context Menu / Button Actions ---
+
   const addChildNode = useCallback((parentId) => {
     const parentNode = nodes.find((n) => n.id === parentId);
     if (!parentNode) return;
 
     const newNodeId = generateId('data');
-    
-    // Logic: Place 200px below parent
     const newNode = {
       id: newNodeId,
       type: 'dataInputNode',
@@ -57,7 +58,6 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
 
     setNodes((nds) => [...nds, newNode]);
     
-    // Create Edge
     setEdges((eds) => [
       ...eds,
       {
@@ -81,7 +81,6 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
       ? generateId('workflow') 
       : generateId('data');
     
-    // Logic: Place 300px to the right
     const newNode = {
       id: newNodeId,
       type: siblingNode.type,
@@ -111,10 +110,65 @@ export function useGraphOperations(nodes, setNodes, edges, setEdges) {
     ]);
   }, [nodes, edges, setNodes, setEdges]);
 
+  // --- 3. Interactive Handle Logic ---
+
+  const addNodeFromHandle = useCallback((sourceId, handleType, position) => {
+    const sourceNode = nodes.find((n) => n.id === sourceId);
+    if (!sourceNode) return;
+
+    // Determine direction and connection logic
+    const isSourceHandle = handleType === 'source';
+    const newNodeId = generateId(isSourceHandle ? 'child' : 'parent');
+    
+    // Calculate Position based on handle location
+    let dx = 0, dy = 0;
+    const GAP_X = 350;
+    const GAP_Y = 200;
+
+    switch (position) {
+      case Position.Right: dx = GAP_X; break;
+      case Position.Left: dx = -GAP_X; break;
+      case Position.Bottom: dy = GAP_Y; break;
+      case Position.Top: dy = -GAP_Y; break;
+      default: dx = GAP_X;
+    }
+
+    const newNode = {
+      id: newNodeId,
+      type: 'dataInputNode', // Default to generic task
+      position: {
+        x: sourceNode.position.x + dx,
+        y: sourceNode.position.y + dy,
+      },
+      data: {
+        label: isSourceHandle ? 'Next Step' : 'Previous Step',
+        type: 'Data',
+        status: 'Pending',
+        description: 'Automatically added step',
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+
+    // Create Edge:
+    // If adding from 'source' handle -> Connect Source to New (Source -> Target)
+    // If adding from 'target' handle -> Connect New to Source (Source -> Target)
+    const newEdge = {
+      id: `e-${isSourceHandle ? sourceId : newNodeId}-${isSourceHandle ? newNodeId : sourceId}`,
+      source: isSourceHandle ? sourceId : newNodeId,
+      target: isSourceHandle ? newNodeId : sourceId,
+      type: 'custom',
+      markerEnd: { type: MarkerType.ArrowClosed },
+    };
+
+    setEdges((eds) => [...eds, newEdge]);
+  }, [nodes, setNodes, setEdges]);
+
   return {
     deleteNode,
     addNewNode,
     addChildNode,
-    addSiblingNode
+    addSiblingNode,
+    addNodeFromHandle
   };
 }
